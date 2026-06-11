@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { computed, onMounted } from 'vue';
+import { showConfirmDialog, showSuccessToast } from 'vant';
 import GroupBuyCard from '@/components/common/GroupBuyCard.vue';
 import PickupPointTag from '@/components/common/PickupPointTag.vue';
 import { useAuth } from '@/hooks/useAuth';
 import { useJoinStore } from '@/stores/useJoinStore';
 import { formatDateTime } from '@/utils/format';
+import { GroupBuyStatus } from '@/types/enums';
 
 const auth = useAuth();
 const joinStore = useJoinStore();
@@ -13,6 +15,22 @@ const totalQuantity = computed(() =>
   joinStore.myJoins.reduce((sum, record) => sum + Number(record.quantity), 0)
 );
 const pendingPickup = computed(() => joinStore.myJoins.filter((record) => !record.picked_up).length);
+
+const canCancel = (record: typeof joinStore.myJoins[0]) => {
+  return record.groupBuy?.status === GroupBuyStatus.RECRUITING && !record.picked_up;
+};
+
+const handleCancel = async (id: string) => {
+  try {
+    await showConfirmDialog({
+      title: '确认取消',
+      message: '确定要取消这次接龙吗？取消后将释放提货点容量。'
+    });
+    await joinStore.cancel(id);
+    showSuccessToast('取消接龙成功');
+  } catch {
+  }
+};
 
 onMounted(() => {
   joinStore.fetchMyJoins();
@@ -57,6 +75,11 @@ onMounted(() => {
           </van-tag>
         </div>
         <PickupPointTag v-if="record.pickupPoint" :point="record.pickupPoint" />
+        <div v-if="canCancel(record)" class="join-actions">
+          <van-button type="danger" size="small" plain block @click="handleCancel(record.id)">
+            取消接龙
+          </van-button>
+        </div>
       </article>
       <van-empty v-if="!joinStore.loading && joinStore.myJoins.length === 0" description="暂无接龙记录" />
     </section>
@@ -140,5 +163,9 @@ onMounted(() => {
 .join-meta span {
   color: #826d60;
   font-size: 12px;
+}
+
+.join-actions {
+  margin-top: 4px;
 }
 </style>

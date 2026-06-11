@@ -27,5 +27,10 @@ export const joinController = {
       role: req.user!.role
     });
     success(res, record, '提货状态已更新');
+  },
+
+  async cancel(req: Request, res: Response) {
+    await joinService.cancel(String(req.params.id), req.user!.id);
+    success(res, null, '取消接龙成功');
   }
 };

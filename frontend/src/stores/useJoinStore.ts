@@ -46,6 +46,10 @@ export const useJoinStore = defineStore('join', {
       const record = await joinApi.markPicked(id, pickedUp);
       this.manageRecords = this.manageRecords.map((item) => (item.id === id ? record : item));
       return record;
+    },
+    async cancel(id: string) {
+      await joinApi.cancel(id);
+      this.myJoins = this.myJoins.filter((item) => item.id !== id);
     }
   }
 });

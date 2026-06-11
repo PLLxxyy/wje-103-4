@@ -179,5 +179,30 @@ export const joinService = {
       data: { picked_up: pickedUp },
       include: joinInclude
     });
+  },
+
+  async cancel(recordId: string, userId: string) {
+    const record = await prisma.joinRecord.findUnique({
+      where: { id: recordId },
+      include: {
+        groupBuy: true
+      }
+    });
+    if (!record) {
+      throw new AppError('接龙记录不存在', 404);
+    }
+    if (record.user_id !== userId) {
+      throw new AppError('只能取消自己的接龙记录', 403);
+    }
+    if (record.groupBuy.status !== GroupBuyStatus.RECRUITING) {
+      throw new AppError('团购已停止征集，无法取消');
+    }
+    if (record.picked_up) {
+      throw new AppError('已提货的接龙无法取消');
+    }
+
+    await prisma.joinRecord.delete({
+      where: { id: recordId }
+    });
   }
 };

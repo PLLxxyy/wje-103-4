@@ -21,5 +21,6 @@ router.patch(
   roleGuard([UserRole.LEADER, UserRole.ADMIN]),
   asyncHandler(joinController.markPicked)
 );
+router.delete('/:id', authMiddleware, asyncHandler(joinController.cancel));
 
 export default router;

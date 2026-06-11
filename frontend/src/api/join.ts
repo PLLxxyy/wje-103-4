@@ -13,5 +13,8 @@ export const joinApi = {
   },
   markPicked(id: string, picked_up: boolean) {
     return request.patch<JoinRecord>(`/joins/${id}/picked`, { picked_up });
+  },
+  cancel(id: string) {
+    return request.delete<void>(`/joins/${id}`);
   }
 };
